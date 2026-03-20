@@ -1,0 +1,47 @@
+[project]
+name = "aiodeque"
+version = "0.1.0"
+description = "Drop-in collections.deque replacement with async methods"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  { name = "cutient", email = "50663467+cutient@users.noreply.github.com" }
+]
+keywords = ["asyncio", "deque", "async", "queue", "producer-consumer", "collections"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Framework :: AsyncIO",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/cutient/aiodeque"
+Repository = "https://github.com/cutient/aiodeque"
+"Bug Tracker" = "https://github.com/cutient/aiodeque/issues"
+Changelog = "https://github.com/cutient/aiodeque/blob/main/CHANGELOG.md"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aiodeque"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/", "tests/", "LICENSE", "README.md", "CHANGELOG.md", "pyproject.toml"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
