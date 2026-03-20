@@ -13,7 +13,6 @@ venv/
 
 # uv
 .python-version
-uv.lock
 
 # Test & coverage
 .pytest_cache/
