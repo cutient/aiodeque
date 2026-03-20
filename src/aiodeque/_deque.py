@@ -111,12 +111,21 @@ class deque(_deque[T]):
 
     # -- async append ------------------------------------------------------
 
-    async def aappend(self, item: T) -> None:
-        """Append *item* to the right, waiting if full (*maxlen* set)."""
+    async def aappend(self, item: T, *, evict: bool = False) -> T | None:
+        """Append *item* to the right, waiting if full (*maxlen* set).
+
+        If *evict* is true and the deque is full, the leftmost element is
+        silently removed instead of waiting.  Returns the evicted element,
+        or ``None`` when no eviction occurred.
+        """
         maxlen = self.maxlen
         if maxlen is not None and len(self) >= maxlen:
             if maxlen == 0:
-                return
+                return None
+            if evict:
+                evicted: T = _deque_popleft(self)
+                _deque_append(self, item)
+                return evicted
             putters = self._get_putters()
             loop = asyncio.get_running_loop()
             while len(self) >= maxlen:
@@ -135,13 +144,23 @@ class deque(_deque[T]):
         g = self._getters
         if g:
             _wakeup_next(g)
+        return None
 
-    async def aappendleft(self, item: T) -> None:
-        """Append *item* to the left, waiting if full (*maxlen* set)."""
+    async def aappendleft(self, item: T, *, evict: bool = False) -> T | None:
+        """Append *item* to the left, waiting if full (*maxlen* set).
+
+        If *evict* is true and the deque is full, the rightmost element is
+        silently removed instead of waiting.  Returns the evicted element,
+        or ``None`` when no eviction occurred.
+        """
         maxlen = self.maxlen
         if maxlen is not None and len(self) >= maxlen:
             if maxlen == 0:
-                return
+                return None
+            if evict:
+                evicted: T = _deque_pop(self)
+                _deque_appendleft(self, item)
+                return evicted
             putters = self._get_putters()
             loop = asyncio.get_running_loop()
             while len(self) >= maxlen:
@@ -160,18 +179,19 @@ class deque(_deque[T]):
         g = self._getters
         if g:
             _wakeup_next(g)
+        return None
 
     # -- async extend ------------------------------------------------------
 
-    async def aextend(self, iterable: Iterable[T]) -> None:
+    async def aextend(self, iterable: Iterable[T], *, evict: bool = False) -> None:
         """Extend the right side, waiting for space per element."""
         for item in iterable if isinstance(iterable, (list, tuple)) else list(iterable):
-            await self.aappend(item)
+            await self.aappend(item, evict=evict)
 
-    async def aextendleft(self, iterable: Iterable[T]) -> None:
+    async def aextendleft(self, iterable: Iterable[T], *, evict: bool = False) -> None:
         """Extend the left side, waiting for space per element."""
         for item in iterable if isinstance(iterable, (list, tuple)) else list(iterable):
-            await self.aappendleft(item)
+            await self.aappendleft(item, evict=evict)
 
     # -- async insert ------------------------------------------------------
 

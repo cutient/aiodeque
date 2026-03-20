@@ -865,6 +865,151 @@ class TestMaxlenEdges:
 
 
 # =========================================================================
+#  evict=True
+# =========================================================================
+
+
+class TestAappendEvict:
+    async def test_evicts_leftmost_when_full(self):
+        d = deque([1, 2, 3], maxlen=3)
+        evicted = await d.aappend(4, evict=True)
+        assert evicted == 1
+        assert list(d) == [2, 3, 4]
+
+    async def test_no_eviction_when_not_full(self):
+        d: deque[int] = deque([1, 2], maxlen=3)
+        evicted = await d.aappend(3, evict=True)
+        assert evicted is None
+        assert list(d) == [1, 2, 3]
+
+    async def test_no_eviction_unbounded(self):
+        d: deque[int] = deque([1, 2])
+        evicted = await d.aappend(3, evict=True)
+        assert evicted is None
+        assert list(d) == [1, 2, 3]
+
+    async def test_maxlen_zero(self):
+        d: deque[int] = deque(maxlen=0)
+        evicted = await d.aappend(1, evict=True)
+        assert evicted is None
+        assert len(d) == 0
+
+    async def test_maxlen_one(self):
+        d = deque([1], maxlen=1)
+        evicted = await d.aappend(2, evict=True)
+        assert evicted == 1
+        assert list(d) == [2]
+
+    async def test_never_blocks(self):
+        """evict=True must not block even when the deque is full."""
+        d = deque([1, 2, 3], maxlen=3)
+        evicted = await asyncio.wait_for(d.aappend(4, evict=True), timeout=0.1)
+        assert evicted == 1
+
+    async def test_does_not_wake_putters(self):
+        """Evicting append doesn't change deque size — putters stay asleep."""
+        d = deque([1, 2, 3], maxlen=3)
+        woken = False
+
+        async def blocked_appender():
+            nonlocal woken
+            await d.aappend(99)
+            woken = True
+
+        task = asyncio.create_task(blocked_appender())
+        await asyncio.sleep(0.01)
+
+        await d.aappend(4, evict=True)
+        await asyncio.sleep(0.02)
+        assert not woken  # putter still blocked
+
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+
+    async def test_repeated_eviction(self):
+        d = deque([1, 2, 3], maxlen=3)
+        evicted = []
+        for i in range(4, 7):
+            evicted.append(await d.aappend(i, evict=True))
+        assert evicted == [1, 2, 3]
+        assert list(d) == [4, 5, 6]
+
+    async def test_wakes_getter_when_not_full(self):
+        """When deque was empty, evict=True append still wakes getters."""
+        d: deque[int] = deque(maxlen=3)
+        result: list[int] = []
+
+        async def consumer():
+            result.append(await d.apopleft())
+
+        task = asyncio.create_task(consumer())
+        await asyncio.sleep(0.01)
+
+        await d.aappend(42, evict=True)
+        await asyncio.sleep(0.01)
+        assert result == [42]
+        await task
+
+
+class TestAappendleftEvict:
+    async def test_evicts_rightmost_when_full(self):
+        d = deque([1, 2, 3], maxlen=3)
+        evicted = await d.aappendleft(0, evict=True)
+        assert evicted == 3
+        assert list(d) == [0, 1, 2]
+
+    async def test_no_eviction_when_not_full(self):
+        d: deque[int] = deque([1, 2], maxlen=3)
+        evicted = await d.aappendleft(0, evict=True)
+        assert evicted is None
+        assert list(d) == [0, 1, 2]
+
+    async def test_no_eviction_unbounded(self):
+        d: deque[int] = deque([1, 2])
+        evicted = await d.aappendleft(0, evict=True)
+        assert evicted is None
+        assert list(d) == [0, 1, 2]
+
+    async def test_maxlen_zero(self):
+        d: deque[int] = deque(maxlen=0)
+        evicted = await d.aappendleft(1, evict=True)
+        assert evicted is None
+        assert len(d) == 0
+
+    async def test_maxlen_one(self):
+        d = deque([1], maxlen=1)
+        evicted = await d.aappendleft(2, evict=True)
+        assert evicted == 1
+        assert list(d) == [2]
+
+    async def test_never_blocks(self):
+        d = deque([1, 2, 3], maxlen=3)
+        evicted = await asyncio.wait_for(d.aappendleft(0, evict=True), timeout=0.1)
+        assert evicted == 3
+
+    async def test_repeated_eviction(self):
+        d = deque([1, 2, 3], maxlen=3)
+        evicted = []
+        for i in range(-1, -4, -1):
+            evicted.append(await d.aappendleft(i, evict=True))
+        assert evicted == [3, 2, 1]
+        assert list(d) == [-3, -2, -1]
+
+
+class TestAextendEvict:
+    async def test_evicts_during_extend(self):
+        d = deque([1, 2, 3], maxlen=3)
+        await d.aextend([4, 5], evict=True)
+        assert list(d) == [3, 4, 5]
+
+    async def test_evicts_during_extendleft(self):
+        d = deque([1, 2, 3], maxlen=3)
+        await d.aextendleft([4, 5], evict=True)
+        assert list(d) == [5, 4, 1]
+
+
+# =========================================================================
 #  Producer / consumer patterns
 # =========================================================================
 

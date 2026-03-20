@@ -244,6 +244,26 @@ async def bench_async_put_get(msgs: list[dict]) -> None:
     _compare("aiodeque", t_ad, "asyncio.Queue", t_q)
 
 
+async def bench_async_evict(msgs: list[dict]) -> None:
+    _header(f"async aappend(evict=True) vs sync append  |  {ITEMS:,} items, maxlen={MAXSIZE}")
+
+    ad: deque[dict] = deque(maxlen=MAXSIZE)
+    t0 = time.perf_counter()
+    for m in msgs:
+        await ad.aappend(m, evict=True)
+    t_evict = time.perf_counter() - t0
+    _report("aiodeque aappend(evict=True)", ITEMS, t_evict)
+
+    sd: stdlib_deque[dict] = stdlib_deque(maxlen=MAXSIZE)
+    t0 = time.perf_counter()
+    for m in msgs:
+        sd.append(m)
+    t_std = time.perf_counter() - t0
+    _report("collections.deque.append", ITEMS, t_std)
+
+    _compare("aiodeque evict", t_evict, "collections.deque", t_std)
+
+
 async def bench_sync_overhead_unbounded(msgs: list[dict]) -> None:
     _header(f"sync append (unbounded)  |  {ITEMS:,} items")
 
@@ -335,6 +355,7 @@ async def main() -> None:
     await bench_sync_overhead(msgs)
     await bench_sync_nowait(msgs)
     await bench_async_put_get(msgs)
+    await bench_async_evict(msgs)
 
     await bench_sync_overhead_unbounded(msgs)
     await bench_sync_nowait_unbounded(msgs)

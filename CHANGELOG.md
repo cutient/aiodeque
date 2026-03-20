@@ -7,11 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.1] - 2026-03-20
+
+## [0.1.1] - 2026-03-21
 
 ### Changed
 
 - Lower minimum Python version from 3.14 to 3.11
+
+### Added
+
+- `evict=True` keyword argument for `aappend()`, `aappendleft()`, `aextend()`, and `aextendleft()` — evicts the oldest element from the opposite end instead of blocking when full; returns the evicted element or `None`
 
 ## [0.1.0] - 2026-03-20
 

@@ -67,6 +67,21 @@ asyncio.run(main())
 
 All other `collections.deque` methods (`.append()`, `.pop()`, `.rotate()`, etc.) are inherited and work unchanged.
 
+### Evicting mode
+
+Pass `evict=True` to `aappend`, `aappendleft`, `aextend`, or `aextendleft` to drop the oldest element instead of waiting when the deque is full:
+
+```python
+d: deque[int] = deque([1, 2, 3], maxlen=3)
+evicted = await d.aappend(4, evict=True)   # evicted == 1, d == [2, 3, 4]
+evicted = await d.aappendleft(0, evict=True)  # evicted == 4, d == [0, 2, 3]
+```
+
+- `aappend(..., evict=True)` evicts from the **left** (oldest-first FIFO).
+- `aappendleft(..., evict=True)` evicts from the **right**.
+- Returns the evicted element, or `None` if the deque was not full.
+- When the deque is not full, behaves identically to the non-evicting call.
+
 ## Behavior Notes
 
 - **Sync mutations do not wake async waiters** — if you call `d.append()` directly, tasks waiting in `apopleft()` will not be notified. Use async methods when coordinating between producers and consumers.
@@ -84,6 +99,7 @@ All other `collections.deque` methods (`.append()`, `.pop()`, `.rotate()`, etc.)
 | Insert at index | No | Yes (`ainsert`) |
 | Rotate / slice | No | Yes (inherited from `deque`) |
 | `maxsize` / `maxlen` | Yes | Yes |
+| Evicting append | No | Yes (`evict=True`) |
 | `task_done` / `join` | Yes | No |
 | Sync access | No | Yes (all `collections.deque` methods) |
 | Type-parameterized | No | Yes (`deque[T]`) |
