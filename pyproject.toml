@@ -3,7 +3,7 @@ name = "aiodeque"
 version = "0.1.0"
 description = "Drop-in collections.deque replacement with async methods"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.11"
 dependencies = []
 license = "MIT"
 license-files = ["LICENSE"]
@@ -17,7 +17,7 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.11",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Framework :: AsyncIO",
   "Typing :: Typed",

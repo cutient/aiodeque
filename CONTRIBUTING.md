@@ -7,7 +7,7 @@
 git clone https://github.com/cutient/aiodeque.git
 cd aiodeque
 
-# Install dev dependencies (requires Python 3.14+)
+# Install dev dependencies (requires Python 3.11+)
 uv sync --extra dev
 ```
 

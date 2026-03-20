@@ -1,7 +1,7 @@
 # aiodeque
 
 [![PyPI version](https://img.shields.io/pypi/v/aiodeque)](https://pypi.org/project/aiodeque/)
-[![Python 3.14+](https://img.shields.io/badge/python-3.14%2B-blue)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
 [![MIT License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![CI](https://github.com/cutient/aiodeque/actions/workflows/ci.yml/badge.svg)](https://github.com/cutient/aiodeque/actions/workflows/ci.yml)
 
@@ -17,7 +17,7 @@ A drop-in `collections.deque` replacement with async methods for producer/consum
 
 ## Requirements
 
-- Python >= 3.14
+- Python >= 3.11
 - No runtime dependencies
 
 ## Installation
